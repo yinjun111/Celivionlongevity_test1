@@ -23,30 +23,239 @@
 
     <div class="login-container">
         <div class="login-box">
-            <h1>Welcome Back</h1>
-            <p class="subtitle">Access your cellular health portal</p>
+            <!-- Toggle Tabs -->
+            <div class="auth-tabs">
+                <button class="tab-btn active" onclick="showLogin()">LOGIN</button>
+                <button class="tab-btn" onclick="showRegister()">REGISTER</button>
+            </div>
 
-            <form>
-                <div class="form-group">
-                    <label>EMAIL ADDRESS</label>
-                    <input type="email" placeholder="your@email.com" required>
-                </div>
+            <!-- Login Form -->
+            <div id="loginForm" class="auth-form">
+                <h1>Welcome Back</h1>
+                <p class="subtitle">Access your cellular health portal</p>
 
-                <div class="form-group">
-                    <label>PASSWORD</label>
-                    <input type="password" placeholder="Enter your password" required>
-                    <div class="forgot-password">
-                        <a href="#">Forgot password?</a>
+                <form onsubmit="handleLogin(event)">
+                    <div class="form-group">
+                        <label>EMAIL ADDRESS</label>
+                        <input type="email" id="login-email" placeholder="your@email.com" required>
                     </div>
-                </div>
 
-                <button type="submit" class="btn-submit">SIGN IN</button>
+                    <div class="form-group">
+                        <label>PASSWORD</label>
+                        <input type="password" id="login-password" placeholder="Enter your password" required>
+                        <div class="forgot-password">
+                            <a href="#">Forgot password?</a>
+                        </div>
+                    </div>
 
-                <div class="signup-link">
-                    Don't have an account? <a href="membership.html">Sign up</a>
-                </div>
-            </form>
+                    <button type="submit" class="btn-submit">SIGN IN</button>
+                </form>
+            </div>
+
+            <!-- Register Form -->
+            <div id="registerForm" class="auth-form" style="display: none;">
+                <h1>Create Account</h1>
+                <p class="subtitle">Join our cellular health community</p>
+
+                <form onsubmit="handleRegister(event)">
+                    <div class="form-group">
+                        <label>FULL NAME</label>
+                        <input type="text" id="register-name" placeholder="John Doe" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>ADDRESS</label>
+                        <input type="text" id="register-address" placeholder="123 Main St, City, State, ZIP" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>EMAIL ADDRESS</label>
+                        <input type="email" id="register-email" placeholder="your@email.com" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>PHONE NUMBER</label>
+                        <input type="tel" id="register-phone" placeholder="+1 (555) 123-4567" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>PASSWORD</label>
+                        <input type="password" id="register-password" placeholder="Create a password" required>
+                        <div class="password-requirements">
+                            <small id="password-hint">Must contain: uppercase, lowercase, and special character</small>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>CONFIRM PASSWORD</label>
+                        <input type="password" id="register-confirm-password" placeholder="Confirm your password" required>
+                        <div id="password-match-message" class="validation-message"></div>
+                    </div>
+
+                    <button type="submit" class="btn-submit">CREATE ACCOUNT</button>
+                </form>
+            </div>
         </div>
     </div>
+
+    <script>
+        // Toggle between login and register forms
+        function showLogin() {
+            document.getElementById('loginForm').style.display = 'block';
+            document.getElementById('registerForm').style.display = 'none';
+            document.querySelectorAll('.tab-btn')[0].classList.add('active');
+            document.querySelectorAll('.tab-btn')[1].classList.remove('active');
+        }
+
+        function showRegister() {
+            document.getElementById('loginForm').style.display = 'none';
+            document.getElementById('registerForm').style.display = 'block';
+            document.querySelectorAll('.tab-btn')[0].classList.remove('active');
+            document.querySelectorAll('.tab-btn')[1].classList.add('active');
+        }
+
+        // Password validation
+        function validatePassword(password) {
+            const hasUpperCase = /[A-Z]/.test(password);
+            const hasLowerCase = /[a-z]/.test(password);
+            const hasSpecialChar = /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password);
+
+            return {
+                isValid: hasUpperCase && hasLowerCase && hasSpecialChar,
+                hasUpperCase,
+                hasLowerCase,
+                hasSpecialChar
+            };
+        }
+
+        // Real-time password validation feedback
+        document.addEventListener('DOMContentLoaded', function() {
+            const registerPassword = document.getElementById('register-password');
+            const confirmPassword = document.getElementById('register-confirm-password');
+            const passwordHint = document.getElementById('password-hint');
+            const matchMessage = document.getElementById('password-match-message');
+
+            if (registerPassword) {
+                registerPassword.addEventListener('input', function() {
+                    const validation = validatePassword(this.value);
+
+                    if (this.value.length === 0) {
+                        passwordHint.style.color = '#666';
+                        passwordHint.textContent = 'Must contain: uppercase, lowercase, and special character';
+                    } else if (validation.isValid) {
+                        passwordHint.style.color = '#4CAF50';
+                        passwordHint.textContent = '✓ Password meets requirements';
+                    } else {
+                        passwordHint.style.color = '#f44336';
+                        let missing = [];
+                        if (!validation.hasUpperCase) missing.push('uppercase');
+                        if (!validation.hasLowerCase) missing.push('lowercase');
+                        if (!validation.hasSpecialChar) missing.push('special character');
+                        passwordHint.textContent = 'Missing: ' + missing.join(', ');
+                    }
+                });
+            }
+
+            if (confirmPassword) {
+                confirmPassword.addEventListener('input', function() {
+                    if (this.value.length === 0) {
+                        matchMessage.textContent = '';
+                    } else if (this.value === registerPassword.value) {
+                        matchMessage.style.color = '#4CAF50';
+                        matchMessage.textContent = '✓ Passwords match';
+                    } else {
+                        matchMessage.style.color = '#f44336';
+                        matchMessage.textContent = '✗ Passwords do not match';
+                    }
+                });
+            }
+        });
+
+        // API base URL
+        const API_URL = window.location.origin;
+
+        // Handle login form submission
+        async function handleLogin(event) {
+            event.preventDefault();
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+
+            try {
+                const response = await fetch(`${API_URL}/api/auth/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ email, password })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    // Store user data in localStorage
+                    localStorage.setItem('user', JSON.stringify(data.user));
+
+                    alert(`Welcome back, ${data.user.name}!`);
+                    // Redirect to home page or dashboard
+                    window.location.href = 'index.html';
+                } else {
+                    alert(data.error || 'Login failed');
+                }
+            } catch (error) {
+                console.error('Login error:', error);
+                alert('An error occurred during login. Please try again.');
+            }
+        }
+
+        // Handle register form submission
+        async function handleRegister(event) {
+            event.preventDefault();
+
+            const name = document.getElementById('register-name').value;
+            const address = document.getElementById('register-address').value;
+            const email = document.getElementById('register-email').value;
+            const phone = document.getElementById('register-phone').value;
+            const password = document.getElementById('register-password').value;
+            const confirmPassword = document.getElementById('register-confirm-password').value;
+
+            // Validate password requirements
+            const validation = validatePassword(password);
+            if (!validation.isValid) {
+                alert('Password must contain at least one uppercase letter, one lowercase letter, and one special character');
+                return;
+            }
+
+            // Check if passwords match
+            if (password !== confirmPassword) {
+                alert('Passwords do not match');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_URL}/api/auth/register`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ name, email, phone, address, password })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    alert('Account created successfully! Please log in.');
+                    // Switch to login tab
+                    showLogin();
+                    // Pre-fill email in login form
+                    document.getElementById('login-email').value = email;
+                } else {
+                    alert(data.error || 'Registration failed');
+                }
+            } catch (error) {
+                console.error('Registration error:', error);
+                alert('An error occurred during registration. Please try again.');
+            }
+        }
+    </script>
 </body>
 </html>

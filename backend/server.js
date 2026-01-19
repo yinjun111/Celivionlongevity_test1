@@ -5,6 +5,7 @@ const bodyParser = require('body-parser');
 const path = require('path');
 
 // Import routes
+const authRoutes = require('./routes/auth');
 const bookingRoutes = require('./routes/bookings');
 const calendarRoutes = require('./routes/calendar');
 const doctorRoutes = require('./routes/doctors');
@@ -43,8 +44,10 @@ app.get('/', (req, res) => {
     message: 'NAD+ Longevity Booking API',
     version: '1.0.0',
     endpoints: {
+      auth: '/api/auth',
       bookings: '/api/bookings',
       calendar: '/api/calendar',
+      doctors: '/api/doctors',
       health: '/health'
     }
   });
@@ -55,6 +58,7 @@ app.get('/health', (req, res) => {
 });
 
 // API Routes
+app.use('/api/auth', authRoutes);
 app.use('/api/bookings', bookingRoutes);
 app.use('/api/calendar', calendarRoutes);
 app.use('/api/doctors', doctorRoutes);

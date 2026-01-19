@@ -539,8 +539,50 @@ body {
     background: #fff;
     padding: 4rem;
     border: 1px solid #e0e0e0;
-    max-width: 450px;
+    max-width: 500px;
     width: 100%;
+}
+
+/* Auth Tabs */
+.auth-tabs {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 3rem;
+    border-bottom: 2px solid #e0e0e0;
+}
+
+.tab-btn {
+    flex: 1;
+    padding: 1rem;
+    background: none;
+    border: none;
+    border-bottom: 3px solid transparent;
+    cursor: pointer;
+    font-size: 0.85rem;
+    letter-spacing: 2px;
+    color: #666;
+    transition: all 0.3s;
+    margin-bottom: -2px;
+}
+
+.tab-btn:hover {
+    color: #1a1a1a;
+}
+
+.tab-btn.active {
+    color: #1a1a1a;
+    border-bottom-color: #1a1a1a;
+    font-weight: bold;
+}
+
+/* Auth Forms */
+.auth-form {
+    animation: fadeIn 0.3s ease-in;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
 }
 
 .login-box h1 {
@@ -560,7 +602,6 @@ body {
 }
 
 .login-box input {
-    padding-left: 3rem;
     background-position: 1rem center;
     background-repeat: no-repeat;
 }
@@ -584,6 +625,23 @@ body {
 .signup-link a {
     color: #4169e1;
     text-decoration: none;
+}
+
+/* Password Requirements */
+.password-requirements {
+    margin-top: 0.5rem;
+}
+
+.password-requirements small {
+    font-size: 0.85rem;
+    color: #666;
+    display: block;
+}
+
+.validation-message {
+    margin-top: 0.5rem;
+    font-size: 0.85rem;
+    font-weight: 500;
 }
 
 /* Responsive */

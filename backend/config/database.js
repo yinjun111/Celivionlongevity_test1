@@ -19,12 +19,127 @@ function getDatabase() {
   return db;
 }
 
-// Initialize database schema
+// Initialize database schema (based on Db_scheme.md)
 async function initDatabase() {
   return new Promise((resolve, reject) => {
     const db = getDatabase();
 
     db.serialize(() => {
+      // Table 1: users - Stores identity + contact info
+      db.run(`
+        CREATE TABLE IF NOT EXISTS users (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          email TEXT NOT NULL UNIQUE,
+          full_name TEXT NOT NULL,
+          phone TEXT,
+          address_line1 TEXT,
+          address_line2 TEXT,
+          city TEXT,
+          state TEXT,
+          postal_code TEXT,
+          country TEXT,
+          status TEXT DEFAULT 'active',
+          created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+          updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        )
+      `, (err) => {
+        if (err) {
+          console.error('Error creating users table:', err);
+          reject(err);
+        }
+      });
+
+      // Table 2: user_auth - Stores password hash
+      db.run(`
+        CREATE TABLE IF NOT EXISTS user_auth (
+          user_id INTEGER PRIMARY KEY,
+          password_hash TEXT NOT NULL,
+          password_updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+          FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+        )
+      `, (err) => {
+        if (err) {
+          console.error('Error creating user_auth table:', err);
+          reject(err);
+        }
+      });
+
+      // Table 3: plans - Defines subscription plans
+      db.run(`
+        CREATE TABLE IF NOT EXISTS plans (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          name TEXT NOT NULL UNIQUE,
+          price_cents INTEGER NOT NULL,
+          billing_period TEXT NOT NULL,
+          is_active BOOLEAN DEFAULT 1
+        )
+      `, (err) => {
+        if (err) {
+          console.error('Error creating plans table:', err);
+          reject(err);
+        }
+      });
+
+      // Table 4: subscriptions - Links user to plan
+      db.run(`
+        CREATE TABLE IF NOT EXISTS subscriptions (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          user_id INTEGER NOT NULL,
+          plan_id INTEGER NOT NULL,
+          status TEXT DEFAULT 'active',
+          start_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+          current_period_start DATETIME,
+          current_period_end DATETIME,
+          cancel_at DATETIME,
+          FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+          FOREIGN KEY (plan_id) REFERENCES plans(id)
+        )
+      `, (err) => {
+        if (err) {
+          console.error('Error creating subscriptions table:', err);
+          reject(err);
+        }
+      });
+
+      // Table 5: appointments - Stores appointment records
+      db.run(`
+        CREATE TABLE IF NOT EXISTS appointments (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          user_id INTEGER NOT NULL,
+          start_at DATETIME NOT NULL,
+          end_at DATETIME NOT NULL,
+          status TEXT DEFAULT 'booked',
+          notes TEXT,
+          created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+          updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+          FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+        )
+      `, (err) => {
+        if (err) {
+          console.error('Error creating appointments table:', err);
+          reject(err);
+        }
+      });
+
+      // Table 6: password_reset_tokens - For password reset functionality
+      db.run(`
+        CREATE TABLE IF NOT EXISTS password_reset_tokens (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          user_id INTEGER NOT NULL,
+          token_hash TEXT NOT NULL,
+          expires_at DATETIME NOT NULL,
+          used_at DATETIME,
+          created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+          FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+        )
+      `, (err) => {
+        if (err) {
+          console.error('Error creating password_reset_tokens table:', err);
+          reject(err);
+        }
+      });
+
+      // Legacy tables for existing booking system compatibility
       // Create doctors table
       db.run(`
         CREATE TABLE IF NOT EXISTS doctors (
@@ -37,32 +152,6 @@ async function initDatabase() {
       `, (err) => {
         if (err) {
           console.error('Error creating doctors table:', err);
-          reject(err);
-        }
-      });
-
-      // Create reservations table
-      db.run(`
-        CREATE TABLE IF NOT EXISTS reservations (
-          id INTEGER PRIMARY KEY AUTOINCREMENT,
-          client_name TEXT NOT NULL,
-          email TEXT NOT NULL,
-          phone TEXT,
-          address TEXT,
-          doctor_name TEXT NOT NULL,
-          service_type TEXT NOT NULL,
-          appointment_date TEXT NOT NULL,
-          appointment_time TEXT NOT NULL,
-          duration INTEGER DEFAULT 60,
-          status TEXT DEFAULT 'pending',
-          google_event_id TEXT,
-          notes TEXT,
-          created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-          updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
-        )
-      `, (err) => {
-        if (err) {
-          console.error('Error creating reservations table:', err);
           reject(err);
         }
       });
@@ -85,19 +174,16 @@ async function initDatabase() {
         }
       });
 
-      // Create availability table (optional - for managing available time slots)
+      // Insert default plans
       db.run(`
-        CREATE TABLE IF NOT EXISTS availability (
-          id INTEGER PRIMARY KEY AUTOINCREMENT,
-          day_of_week INTEGER NOT NULL,
-          start_time TEXT NOT NULL,
-          end_time TEXT NOT NULL,
-          active BOOLEAN DEFAULT 1
-        )
+        INSERT OR IGNORE INTO plans (id, name, price_cents, billing_period, is_active)
+        VALUES
+          (1, 'Basic', 9900, 'monthly', 1),
+          (2, 'Premium', 19900, 'monthly', 1),
+          (3, 'Annual', 199900, 'yearly', 1)
       `, (err) => {
-        if (err) {
-          console.error('Error creating availability table:', err);
-          reject(err);
+        if (err && !err.message.includes('UNIQUE constraint')) {
+          console.error('Error inserting default plans:', err);
         }
       });
 
@@ -106,8 +192,7 @@ async function initDatabase() {
         INSERT OR IGNORE INTO doctors (id, name, specialization)
         VALUES
           (1, 'Tommy', 'NAD+ Therapy Specialist'),
-          (2, 'Andy', 'Cellular Wellness Expert'),
-          (3, 'Cindy', 'Longevity Medicine Specialist')
+          (2, 'Andy', 'Cellular Wellness Expert')
       `, (err) => {
         if (err && !err.message.includes('UNIQUE constraint')) {
           console.error('Error inserting default doctors:', err);
@@ -125,22 +210,6 @@ async function initDatabase() {
       `, (err) => {
         if (err && !err.message.includes('UNIQUE constraint')) {
           console.error('Error inserting default services:', err);
-        }
-      });
-
-      // Insert default availability (Monday-Friday, 9 AM - 5 PM)
-      db.run(`
-        INSERT OR IGNORE INTO availability (id, day_of_week, start_time, end_time)
-        VALUES
-          (1, 1, '09:00', '17:00'),
-          (2, 2, '09:00', '17:00'),
-          (3, 3, '09:00', '17:00'),
-          (4, 4, '09:00', '17:00'),
-          (5, 5, '09:00', '17:00'),
-          (6, 6, '10:00', '15:00')
-      `, (err) => {
-        if (err && !err.message.includes('UNIQUE constraint')) {
-          console.error('Error inserting default availability:', err);
         } else {
           resolve();
         }
