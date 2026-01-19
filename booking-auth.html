@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Book Appointment - NAD+ Longevity</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="index.html" class="logo">NAD+</a>
+            <ul class="nav-menu">
+                <li><a href="about.html">ABOUT US</a></li>
+                <li><a href="services.html">SERVICES</a></li>
+                <li><a href="services.html">MEDICAL AESTHETICS</a></li>
+                <li><a href="membership.html">MEMBERSHIP</a></li>
+                <li><a href="contact.html">CONTACT US</a></li>
+                <li><a href="login.html">LOGIN</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <section class="content-section light">
+        <div class="section-container">
+            <div class="section-header">
+                <p class="section-label">SCHEDULE YOUR VISIT</p>
+                <h2 class="section-title">Book Appointment</h2>
+                <p class="section-subtitle">Select your preferred doctor and time.</p>
+            </div>
+
+            <div class="booking-layout">
+                <!-- Left Panel - Appointment Details -->
+                <div class="booking-left-panel">
+                    <form id="bookingForm">
+                        <h3>Appointment Details</h3>
+
+                        <div class="form-group">
+                            <label for="doctorSelect">Select Doctor *</label>
+                            <select id="doctorSelect" name="doctor" required>
+                                <option value="">Choose a doctor...</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="notes">Comments (Optional)</label>
+                            <textarea id="notes" name="notes" rows="3" placeholder="Any specific requests or health information we should know?"></textarea>
+                        </div>
+
+                        <button type="submit" id="makeAppointmentBtn" class="btn-submit" disabled>
+                            Make Appointment
+                        </button>
+
+                        <div id="errorMessage" class="error-message" style="display: none;"></div>
+                        <div id="successMessage" class="success-message-inline" style="display: none;"></div>
+                    </form>
+                </div>
+
+                <!-- Right Panel - Calendar -->
+                <div class="booking-right-panel">
+                    <h3>Select Date & Time</h3>
+
+                    <div id="doctorNotSelected" class="info-message">
+                        Please select a doctor to view available dates
+                    </div>
+
+                    <div id="calendarContainer" style="display: none;">
+                        <div class="calendar-header">
+                            <button type="button" id="prevMonth" class="calendar-nav-btn">&lt;</button>
+                            <h4 id="currentMonth"></h4>
+                            <button type="button" id="nextMonth" class="calendar-nav-btn">&gt;</button>
+                        </div>
+
+                        <div class="calendar-grid" id="calendarGrid">
+                            <!-- Calendar will be generated here -->
+                        </div>
+
+                        <div id="timeSlotsContainer" style="display: none;">
+                            <h4 id="selectedDateDisplay"></h4>
+                            <div id="timeSlots" class="time-slots-grid">
+                                <!-- Time slots will be generated here -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Loading Overlay -->
+            <div id="loadingOverlay" class="loading-overlay" style="display: none;">
+                <div class="spinner"></div>
+                <p>Processing your booking...</p>
+            </div>
+        </div>
+    </section>
+
+    <script src="backend/public/booking-auth.js"></script>
+    <script src="navbar.js"></script>
+</body>
+</html>

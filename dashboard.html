@@ -264,17 +264,35 @@
                                     <h4>${new Date(apt.start_at).toLocaleDateString()}</h4>
                                     <span class="status-badge ${apt.status}">${apt.status}</span>
                                 </div>
-                                <p><strong>Time:</strong> ${new Date(apt.start_at).toLocaleTimeString()} - ${new Date(apt.end_at).toLocaleTimeString()}</p>
+                                ${apt.doctor_name ? `<p><strong>Doctor:</strong> ${apt.doctor_name}</p>` : ''}
+                                <p><strong>Time:</strong> ${new Date(apt.start_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} - ${new Date(apt.end_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
                                 ${apt.notes ? `<p><strong>Notes:</strong> ${apt.notes}</p>` : ''}
                                 ${apt.status === 'booked' ? '<button class="btn-secondary" onclick="cancelAppointment(' + apt.id + ')">Cancel</button>' : ''}
                             </div>
                         `).join('');
 
                         document.getElementById('appointments-list').innerHTML = appointmentsHtml;
+                    } else {
+                        document.getElementById('appointments-list').innerHTML = `
+                            <div class="info-card">
+                                <p class="no-data">You have no appointments scheduled.</p>
+                            </div>
+                        `;
                     }
+                } else {
+                    document.getElementById('appointments-list').innerHTML = `
+                        <div class="info-card">
+                            <p class="no-data">You have no appointments scheduled.</p>
+                        </div>
+                    `;
                 }
             } catch (error) {
                 console.error('Error loading appointments:', error);
+                document.getElementById('appointments-list').innerHTML = `
+                    <div class="info-card">
+                        <p class="no-data">Unable to load appointments. Please try again later.</p>
+                    </div>
+                `;
             }
         }
 
@@ -299,12 +317,30 @@
         }
 
         function bookNewAppointment() {
-            window.location.href = 'booking.html';
+            window.location.href = 'booking-auth.html';
         }
 
-        function cancelAppointment(appointmentId) {
+        async function cancelAppointment(appointmentId) {
             if (confirm('Are you sure you want to cancel this appointment?')) {
-                alert(`Cancellation of appointment ${appointmentId} coming soon!`);
+                try {
+                    const response = await fetch(`${API_URL}/api/appointments/${appointmentId}/cancel`, {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        }
+                    });
+
+                    if (response.ok) {
+                        alert('Appointment canceled successfully');
+                        loadAppointments(); // Reload appointments list
+                    } else {
+                        const data = await response.json();
+                        alert(data.error || 'Failed to cancel appointment');
+                    }
+                } catch (error) {
+                    console.error('Error canceling appointment:', error);
+                    alert('Failed to cancel appointment. Please try again.');
+                }
             }
         }
 
@@ -312,6 +348,18 @@
         document.addEventListener('DOMContentLoaded', function() {
             loadUserData();
             loadPlans();
+
+            // Check if there's a hash in the URL to show a specific section
+            if (window.location.hash) {
+                const sectionId = window.location.hash.substring(1);
+                if (sectionId === 'appointments') {
+                    // Find and click the appointments nav item
+                    const appointmentsNav = document.querySelector('a[onclick*="appointments"]');
+                    if (appointmentsNav) {
+                        appointmentsNav.click();
+                    }
+                }
+            }
         });
     </script>
     <script src="navbar.js"></script>

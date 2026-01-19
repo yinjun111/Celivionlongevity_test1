@@ -14,7 +14,7 @@ function getCalendarClient() {
   return google.calendar({ version: "v3", auth });
 }
 
-function getCalendarId() {
+function getDefaultCalendarId() {
   const id = process.env.GOOGLE_CALENDAR_ID;
   if (!id) throw new Error("Missing GOOGLE_CALENDAR_ID in .env");
   return id;
@@ -24,9 +24,9 @@ function getTimeZone() {
   return process.env.CLINIC_TIMEZONE || "America/New_York";
 }
 
-async function createCalendarEvent({ summary, description, start, duration = 60, attendees = [] }) {
+async function createCalendarEvent({ summary, description, start, duration = 60, attendees = [], calendarId }) {
   const calendar = getCalendarClient();
-  const calendarId = getCalendarId();
+  const targetCalendarId = calendarId || getDefaultCalendarId();
   const timeZone = getTimeZone();
 
   // start should be ISO string. If you pass "YYYY-MM-DDTHH:mm:ss", it will be interpreted as local with timeZone.
@@ -36,24 +36,30 @@ async function createCalendarEvent({ summary, description, start, duration = 60,
   }
   const endDate = new Date(startDate.getTime() + duration * 60 * 1000);
 
+  const requestBody = {
+    summary,
+    description,
+    start: { dateTime: startDate.toISOString(), timeZone },
+    end: { dateTime: endDate.toISOString(), timeZone },
+  };
+
+  // Only add attendees if provided, but don't send email invitations (service accounts can't)
+  if (attendees && attendees.length > 0) {
+    requestBody.attendees = attendees.map((email) => ({ email }));
+  }
+
   const resp = await calendar.events.insert({
-    calendarId,
-    requestBody: {
-      summary,
-      description,
-      start: { dateTime: startDate.toISOString(), timeZone },
-      end: { dateTime: endDate.toISOString(), timeZone },
-      attendees: (attendees || []).map((email) => ({ email })),
-    },
-    sendUpdates: attendees?.length ? "all" : "none",
+    calendarId: targetCalendarId,
+    requestBody,
+    sendUpdates: "none", // Service accounts cannot send invitations
   });
 
   return resp.data;
 }
 
-async function updateCalendarEvent(eventId, { summary, description, start, duration = 60, attendees }) {
+async function updateCalendarEvent(eventId, { summary, description, start, duration = 60, attendees, calendarId }) {
   const calendar = getCalendarClient();
-  const calendarId = getCalendarId();
+  const targetCalendarId = calendarId || getDefaultCalendarId();
   const timeZone = getTimeZone();
 
   const startDate = new Date(start);
@@ -74,31 +80,35 @@ async function updateCalendarEvent(eventId, { summary, description, start, durat
   }
 
   const resp = await calendar.events.patch({
-    calendarId,
+    calendarId: targetCalendarId,
     eventId,
     requestBody: patch,
-    sendUpdates: Array.isArray(attendees) && attendees.length ? "all" : "none",
+    sendUpdates: "none", // Service accounts cannot send invitations
   });
 
   return resp.data;
 }
 
-async function deleteCalendarEvent(eventId) {
+async function deleteCalendarEvent(eventId, calendarId) {
   const calendar = getCalendarClient();
-  const calendarId = getCalendarId();
-  await calendar.events.delete({ calendarId, eventId });
+  const targetCalendarId = calendarId || getDefaultCalendarId();
+  await calendar.events.delete({
+    calendarId: targetCalendarId,
+    eventId,
+    sendUpdates: "none" // Service accounts cannot send invitations
+  });
   return true;
 }
 
 
-async function getBusyBlocks({ timeMinISO, timeMaxISO }) {
+async function getBusyBlocks({ timeMinISO, timeMaxISO, calendarId }) {
   const calendar = getCalendarClient();
-  const calendarId = getCalendarId();
+  const targetCalendarId = calendarId || getDefaultCalendarId();
   const timeZone = getTimeZone();
 
   // Use events.list instead of freebusy to catch all events including all-day events
   const resp = await calendar.events.list({
-    calendarId,
+    calendarId: targetCalendarId,
     timeMin: timeMinISO,
     timeMax: timeMaxISO,
     singleEvents: true,

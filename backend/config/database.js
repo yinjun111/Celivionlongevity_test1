@@ -106,10 +106,14 @@ async function initDatabase() {
         CREATE TABLE IF NOT EXISTS appointments (
           id INTEGER PRIMARY KEY AUTOINCREMENT,
           user_id INTEGER NOT NULL,
+          doctor_name TEXT,
           start_at DATETIME NOT NULL,
           end_at DATETIME NOT NULL,
           status TEXT DEFAULT 'booked',
           notes TEXT,
+          google_calendar_id TEXT,
+          google_calendar_event_id TEXT,
+          sync_status TEXT DEFAULT 'synced',
           created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
           updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
           FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
@@ -140,12 +144,13 @@ async function initDatabase() {
       });
 
       // Legacy tables for existing booking system compatibility
-      // Create doctors table
+      // Create doctors table with Google Calendar integration
       db.run(`
         CREATE TABLE IF NOT EXISTS doctors (
           id INTEGER PRIMARY KEY AUTOINCREMENT,
           name TEXT NOT NULL,
           specialization TEXT,
+          google_calendar_id TEXT,
           active BOOLEAN DEFAULT 1,
           created_at DATETIME DEFAULT CURRENT_TIMESTAMP
         )

@@ -100,37 +100,65 @@ router.get('/:doctorName/available-dates', async (req, res) => {
     const db = getDatabase();
     const tz = getTz();
 
+    // Get doctor's Google Calendar ID
+    const doctor = await new Promise((resolve, reject) => {
+      db.get('SELECT google_calendar_id FROM doctors WHERE name = ? AND active = 1', [doctorName], (err, row) => {
+        if (err) reject(err);
+        else resolve(row);
+      });
+    });
+
+    if (!doctor) {
+      return res.status(404).json({
+        success: false,
+        error: 'Doctor not found'
+      });
+    }
+
+    const doctorCalendarId = doctor.google_calendar_id;
+
     // Month range
     const monthStart = DateTime.fromObject({ year: y, month: m, day: 1 }, { zone: tz }).startOf('day');
     const monthEnd = monthStart.plus({ months: 1 });
 
     const today = DateTime.now().setZone(tz).startOf('day');
 
-    // Pull all reservations for this doctor in this month (single DB query)
-    const reservations = await new Promise((resolve, reject) => {
+    // Pull all appointments for this doctor in this month (single DB query)
+    const appointments = await new Promise((resolve, reject) => {
       db.all(
-        `SELECT appointment_date, appointment_time FROM reservations
+        `SELECT start_at FROM appointments
          WHERE doctor_name = ?
-           AND appointment_date >= ?
-           AND appointment_date < ?
-           AND status != 'cancelled'`,
-        [doctorName, monthStart.toISODate(), monthEnd.toISODate()],
+           AND start_at >= ?
+           AND start_at < ?
+           AND status != 'canceled'`,
+        [doctorName, monthStart.toISO(), monthEnd.toISO()],
         (err, rows) => (err ? reject(err) : resolve(rows))
       );
     });
 
     // Map date -> Set(times)
     const bookedByDate = new Map();
-    for (const r of reservations) {
-      if (!bookedByDate.has(r.appointment_date)) bookedByDate.set(r.appointment_date, new Set());
-      bookedByDate.get(r.appointment_date).add(r.appointment_time);
+    for (const r of appointments) {
+      const dt = DateTime.fromISO(r.start_at, { zone: tz });
+      const dateISO = dt.toISODate();
+      const time = dt.toFormat('HH:mm');
+      if (!bookedByDate.has(dateISO)) bookedByDate.set(dateISO, new Set());
+      bookedByDate.get(dateISO).add(time);
     }
 
-    // Pull Google busy blocks once for the whole month (single API call)
-    const busyBlocks = await getBusyBlocks({
-      timeMinISO: monthStart.toISO(),
-      timeMaxISO: monthEnd.toISO()
-    });
+    // Pull Google busy blocks once for the whole month (single API call) from doctor's specific calendar
+    let busyBlocks = [];
+    try {
+      if (doctorCalendarId) {
+        busyBlocks = await getBusyBlocks({
+          timeMinISO: monthStart.toISO(),
+          timeMaxISO: monthEnd.toISO(),
+          calendarId: doctorCalendarId
+        });
+      }
+    } catch (err) {
+      console.log('Google Calendar not configured or error fetching busy blocks:', err.message);
+    }
     const busyMillis = intervalsToMillis(busyBlocks);
 
     const daysInMonth = monthStart.daysInMonth;
@@ -227,25 +255,53 @@ router.get('/:doctorName/available-slots', async (req, res) => {
 
     const db = getDatabase();
 
-    // DB bookings for that doctor + date
-    const bookings = await new Promise((resolve, reject) => {
-      db.all(
-        `SELECT appointment_time FROM reservations
-         WHERE doctor_name = ? AND appointment_date = ? AND status != 'cancelled'`,
-        [doctorName, date],
-        (err, rows) => (err ? reject(err) : resolve(rows))
-      );
+    // Get doctor's Google Calendar ID
+    const doctor = await new Promise((resolve, reject) => {
+      db.get('SELECT google_calendar_id FROM doctors WHERE name = ? AND active = 1', [doctorName], (err, row) => {
+        if (err) reject(err);
+        else resolve(row);
+      });
     });
-    const bookedTimes = new Set(bookings.map(b => b.appointment_time));
+
+    if (!doctor) {
+      return res.status(404).json({
+        success: false,
+        error: 'Doctor not found'
+      });
+    }
+
+    const doctorCalendarId = doctor.google_calendar_id;
 
     // Google busy blocks for that day
     const dayStart = DateTime.fromISO(date, { zone: tz }).startOf('day');
     const dayEnd = dayStart.plus({ days: 1 });
 
-    const busyBlocks = await getBusyBlocks({
-      timeMinISO: dayStart.toISO(),
-      timeMaxISO: dayEnd.toISO()
+    // DB bookings for that doctor + date
+    const bookings = await new Promise((resolve, reject) => {
+      db.all(
+        `SELECT start_at FROM appointments
+         WHERE doctor_name = ? AND start_at >= ? AND start_at < ? AND status != 'canceled'`,
+        [doctorName, dayStart.toISO(), dayEnd.toISO()],
+        (err, rows) => (err ? reject(err) : resolve(rows))
+      );
     });
+    const bookedTimes = new Set(bookings.map(b => {
+      const dt = DateTime.fromISO(b.start_at, { zone: tz });
+      return dt.toFormat('HH:mm');
+    }));
+
+    let busyBlocks = [];
+    try {
+      if (doctorCalendarId) {
+        busyBlocks = await getBusyBlocks({
+          timeMinISO: dayStart.toISO(),
+          timeMaxISO: dayEnd.toISO(),
+          calendarId: doctorCalendarId
+        });
+      }
+    } catch (err) {
+      console.log('Google Calendar not configured or error fetching busy blocks:', err.message);
+    }
     const busyMillis = intervalsToMillis(busyBlocks);
 
     const availableSlots = [];

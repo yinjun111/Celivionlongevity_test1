@@ -9,6 +9,7 @@ const authRoutes = require('./routes/auth');
 const bookingRoutes = require('./routes/bookings');
 const calendarRoutes = require('./routes/calendar');
 const doctorRoutes = require('./routes/doctors');
+const appointmentRoutes = require('./routes/appointments');
 
 // Import database initialization
 const { initDatabase } = require('./config/database');
@@ -48,6 +49,7 @@ app.get('/', (req, res) => {
       bookings: '/api/bookings',
       calendar: '/api/calendar',
       doctors: '/api/doctors',
+      appointments: '/api/appointments',
       health: '/health'
     }
   });
@@ -62,6 +64,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/bookings', bookingRoutes);
 app.use('/api/calendar', calendarRoutes);
 app.use('/api/doctors', doctorRoutes);
+app.use('/api/appointments', appointmentRoutes);
 
 // Error handling middleware
 app.use((err, req, res, next) => {
