@@ -78,6 +78,42 @@ body {
     border-bottom: 2px solid #fff;
 }
 
+/* User Initials Circle in Navbar */
+.user-initials-link {
+    display: flex;
+    align-items: center;
+    text-decoration: none;
+}
+
+.user-initials {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    background: #1a1a1a;
+    color: #fff;
+    border-radius: 50%;
+    font-size: 0.75rem;
+    font-weight: bold;
+    letter-spacing: 0.5px;
+    transition: all 0.3s;
+}
+
+.user-initials-link:hover .user-initials {
+    background: #333;
+    transform: scale(1.1);
+}
+
+.navbar.dark .user-initials {
+    background: #fff;
+    color: #1a1a1a;
+}
+
+.navbar.dark .user-initials-link:hover .user-initials {
+    background: #e0e0e0;
+}
+
 /* Hero Section */
 .hero {
     background: linear-gradient(135deg, #e8f0f5 0%, #f5f5f5 100%);
@@ -1148,6 +1184,8 @@ body {
     border-radius: 5px;
     padding: 2rem;
     box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    display: flex;
+    flex-direction: column;
 }
 
 .user-welcome {
@@ -1199,6 +1237,39 @@ body {
 .nav-icon {
     margin-right: 0.8rem;
     font-size: 1.2rem;
+}
+
+/* Logout Section */
+.logout-section {
+    margin-top: auto;
+    padding-top: 3rem;
+    border-top: 2px solid #e0e0e0;
+}
+
+.btn-logout {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    background: #fff;
+    color: #f44336;
+    border: 2px solid #f44336;
+    border-radius: 5px;
+    font-size: 0.95rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.btn-logout:hover {
+    background: #f44336;
+    color: #fff;
+}
+
+.logout-icon {
+    margin-right: 0.5rem;
+    font-size: 1.1rem;
 }
 
 /* Right Panel */

@@ -16,8 +16,7 @@
                 <li><a href="services.html">MEDICAL AESTHETICS</a></li>
                 <li><a href="membership.html">MEMBERSHIP</a></li>
                 <li><a href="contact.html">CONTACT US</a></li>
-                <li><a href="#" id="user-menu-btn" class="active">MY ACCOUNT</a></li>
-                <li><a href="#" onclick="handleLogout()" style="color: #666;">LOGOUT</a></li>
+                <li><a href="login.html">LOGIN</a></li>
             </ul>
         </div>
     </nav>
@@ -53,6 +52,13 @@
                         </li>
                     </ul>
                 </nav>
+
+                <div class="logout-section">
+                    <button class="btn-logout" onclick="handleLogout()">
+                        <span class="logout-icon">🚪</span>
+                        Logout
+                    </button>
+                </div>
             </div>
 
             <!-- Right Panel - Content -->
@@ -308,5 +314,6 @@
             loadPlans();
         });
     </script>
+    <script src="navbar.js"></script>
 </body>
 </html>
