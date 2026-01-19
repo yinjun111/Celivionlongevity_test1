@@ -195,9 +195,8 @@
                     // Store user data in localStorage
                     localStorage.setItem('user', JSON.stringify(data.user));
 
-                    alert(`Welcome back, ${data.user.name}!`);
-                    // Redirect to home page or dashboard
-                    window.location.href = 'index.html';
+                    // Redirect to dashboard
+                    window.location.href = 'dashboard.html';
                 } else {
                     alert(data.error || 'Login failed');
                 }

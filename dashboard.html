@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Account - NAD+ Longevity</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="index.html" class="logo">NAD+</a>
+            <ul class="nav-menu">
+                <li><a href="about.html">ABOUT US</a></li>
+                <li><a href="services.html">SERVICES</a></li>
+                <li><a href="services.html">MEDICAL AESTHETICS</a></li>
+                <li><a href="membership.html">MEMBERSHIP</a></li>
+                <li><a href="contact.html">CONTACT US</a></li>
+                <li><a href="#" id="user-menu-btn" class="active">MY ACCOUNT</a></li>
+                <li><a href="#" onclick="handleLogout()" style="color: #666;">LOGOUT</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="dashboard-container">
+        <div class="dashboard-layout">
+            <!-- Left Panel - Navigation -->
+            <div class="dashboard-left-panel">
+                <div class="user-welcome">
+                    <h2 id="user-name-display">Welcome</h2>
+                    <p id="user-email-display"></p>
+                </div>
+
+                <nav class="dashboard-nav">
+                    <ul>
+                        <li>
+                            <a href="#" class="nav-item active" onclick="showSection('personal-info', event)">
+                                <span class="nav-icon">👤</span>
+                                Personal Info
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#" class="nav-item" onclick="showSection('subscription', event)">
+                                <span class="nav-icon">💎</span>
+                                Subscription
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#" class="nav-item" onclick="showSection('appointments', event)">
+                                <span class="nav-icon">📅</span>
+                                Appointments
+                            </a>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+
+            <!-- Right Panel - Content -->
+            <div class="dashboard-right-panel">
+                <!-- Personal Info Section -->
+                <div id="personal-info-section" class="content-section active">
+                    <h2>Personal Information</h2>
+                    <div class="info-card">
+                        <div class="info-row">
+                            <label>Full Name</label>
+                            <span id="display-name">-</span>
+                        </div>
+                        <div class="info-row">
+                            <label>Email</label>
+                            <span id="display-email">-</span>
+                        </div>
+                        <div class="info-row">
+                            <label>Phone</label>
+                            <span id="display-phone">-</span>
+                        </div>
+                        <div class="info-row">
+                            <label>Address</label>
+                            <span id="display-address">-</span>
+                        </div>
+                        <div class="info-row">
+                            <label>Account Status</label>
+                            <span id="display-status" class="status-badge">Active</span>
+                        </div>
+                    </div>
+
+                    <div class="action-buttons">
+                        <button class="btn-primary" onclick="editProfile()">Edit Profile</button>
+                        <button class="btn-secondary" onclick="changePassword()">Change Password</button>
+                    </div>
+                </div>
+
+                <!-- Subscription Section -->
+                <div id="subscription-section" class="content-section">
+                    <h2>Subscription</h2>
+                    <div id="subscription-content">
+                        <div class="info-card">
+                            <div class="subscription-status">
+                                <h3>Current Plan</h3>
+                                <div id="current-plan-info">
+                                    <p class="no-subscription">You don't have an active subscription yet.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="available-plans">
+                            <h3>Available Plans</h3>
+                            <div class="plans-grid" id="plans-list">
+                                <!-- Plans will be loaded here -->
+                                <p>Loading plans...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Appointments Section -->
+                <div id="appointments-section" class="content-section">
+                    <h2>My Appointments</h2>
+                    <div class="appointments-header">
+                        <button class="btn-primary" onclick="bookNewAppointment()">Book New Appointment</button>
+                    </div>
+
+                    <div id="appointments-list" class="appointments-list">
+                        <!-- Appointments will be loaded here -->
+                        <div class="info-card">
+                            <p class="no-data">You have no appointments scheduled.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = window.location.origin;
+        let currentUser = null;
+
+        // Check if user is logged in
+        function checkAuth() {
+            const userStr = localStorage.getItem('user');
+            if (!userStr) {
+                alert('Please log in to access your account');
+                window.location.href = 'login.html';
+                return null;
+            }
+            return JSON.parse(userStr);
+        }
+
+        // Load user data
+        function loadUserData() {
+            currentUser = checkAuth();
+            if (!currentUser) return;
+
+            // Display user info in welcome section
+            document.getElementById('user-name-display').textContent = `Welcome, ${currentUser.name}`;
+            document.getElementById('user-email-display').textContent = currentUser.email;
+
+            // Display personal info
+            document.getElementById('display-name').textContent = currentUser.name || '-';
+            document.getElementById('display-email').textContent = currentUser.email || '-';
+            document.getElementById('display-phone').textContent = currentUser.phone || '-';
+            document.getElementById('display-address').textContent = currentUser.address || '-';
+        }
+
+        // Switch between sections
+        function showSection(sectionId, event) {
+            if (event) {
+                event.preventDefault();
+            }
+
+            // Update navigation active state
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            event?.target.closest('.nav-item')?.classList.add('active');
+
+            // Hide all sections
+            document.querySelectorAll('.content-section').forEach(section => {
+                section.classList.remove('active');
+            });
+
+            // Show selected section
+            const section = document.getElementById(sectionId + '-section');
+            if (section) {
+                section.classList.add('active');
+            }
+
+            // Load section-specific data
+            if (sectionId === 'subscription') {
+                loadPlans();
+                loadSubscription();
+            } else if (sectionId === 'appointments') {
+                loadAppointments();
+            }
+        }
+
+        // Load available plans
+        async function loadPlans() {
+            try {
+                const response = await fetch(`${API_URL}/api/plans`);
+                if (!response.ok) {
+                    document.getElementById('plans-list').innerHTML = '<p>Unable to load plans at this time.</p>';
+                    return;
+                }
+
+                const plans = await response.json();
+                const plansHtml = plans.map(plan => `
+                    <div class="plan-card">
+                        <h4>${plan.name}</h4>
+                        <p class="plan-price">$${(plan.price_cents / 100).toFixed(2)}</p>
+                        <p class="plan-period">per ${plan.billing_period}</p>
+                        <button class="btn-secondary" onclick="subscribeToPlan(${plan.id})">Subscribe</button>
+                    </div>
+                `).join('');
+
+                document.getElementById('plans-list').innerHTML = plansHtml;
+            } catch (error) {
+                console.error('Error loading plans:', error);
+                document.getElementById('plans-list').innerHTML = '<p>Unable to load plans.</p>';
+            }
+        }
+
+        // Load user subscription
+        async function loadSubscription() {
+            if (!currentUser) return;
+
+            try {
+                const response = await fetch(`${API_URL}/api/subscriptions/user/${currentUser.id}`);
+                if (response.ok) {
+                    const subscription = await response.json();
+                    if (subscription) {
+                        document.getElementById('current-plan-info').innerHTML = `
+                            <div class="active-subscription">
+                                <p><strong>Plan:</strong> ${subscription.plan_name}</p>
+                                <p><strong>Status:</strong> <span class="status-badge">${subscription.status}</span></p>
+                                <p><strong>Started:</strong> ${new Date(subscription.start_at).toLocaleDateString()}</p>
+                                <p><strong>Next Billing:</strong> ${new Date(subscription.current_period_end).toLocaleDateString()}</p>
+                            </div>
+                        `;
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading subscription:', error);
+            }
+        }
+
+        // Load user appointments
+        async function loadAppointments() {
+            if (!currentUser) return;
+
+            try {
+                const response = await fetch(`${API_URL}/api/appointments/user/${currentUser.id}`);
+                if (response.ok) {
+                    const appointments = await response.json();
+                    if (appointments && appointments.length > 0) {
+                        const appointmentsHtml = appointments.map(apt => `
+                            <div class="appointment-card">
+                                <div class="appointment-header">
+                                    <h4>${new Date(apt.start_at).toLocaleDateString()}</h4>
+                                    <span class="status-badge ${apt.status}">${apt.status}</span>
+                                </div>
+                                <p><strong>Time:</strong> ${new Date(apt.start_at).toLocaleTimeString()} - ${new Date(apt.end_at).toLocaleTimeString()}</p>
+                                ${apt.notes ? `<p><strong>Notes:</strong> ${apt.notes}</p>` : ''}
+                                ${apt.status === 'booked' ? '<button class="btn-secondary" onclick="cancelAppointment(' + apt.id + ')">Cancel</button>' : ''}
+                            </div>
+                        `).join('');
+
+                        document.getElementById('appointments-list').innerHTML = appointmentsHtml;
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading appointments:', error);
+            }
+        }
+
+        // Handle logout
+        function handleLogout() {
+            localStorage.removeItem('user');
+            alert('You have been logged out');
+            window.location.href = 'login.html';
+        }
+
+        // Action handlers
+        function editProfile() {
+            alert('Profile editing coming soon!');
+        }
+
+        function changePassword() {
+            alert('Password change coming soon!');
+        }
+
+        function subscribeToPlan(planId) {
+            alert(`Subscription to plan ${planId} coming soon!`);
+        }
+
+        function bookNewAppointment() {
+            window.location.href = 'booking.html';
+        }
+
+        function cancelAppointment(appointmentId) {
+            if (confirm('Are you sure you want to cancel this appointment?')) {
+                alert(`Cancellation of appointment ${appointmentId} coming soon!`);
+            }
+        }
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            loadUserData();
+            loadPlans();
+        });
+    </script>
+</body>
+</html>

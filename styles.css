@@ -1126,8 +1126,297 @@ body {
     100% { transform: rotate(360deg); }
 }
 
+/* Dashboard Page */
+.dashboard-container {
+    min-height: 80vh;
+    padding: 2rem;
+    background: #f5f5f5;
+}
+
+.dashboard-layout {
+    max-width: 1400px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 280px 1fr;
+    gap: 2rem;
+    min-height: 600px;
+}
+
+/* Left Panel */
+.dashboard-left-panel {
+    background: #fff;
+    border-radius: 5px;
+    padding: 2rem;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.user-welcome {
+    margin-bottom: 2rem;
+    padding-bottom: 2rem;
+    border-bottom: 2px solid #e0e0e0;
+}
+
+.user-welcome h2 {
+    font-size: 1.5rem;
+    margin-bottom: 0.5rem;
+    color: #1a1a1a;
+}
+
+.user-welcome p {
+    color: #666;
+    font-size: 0.9rem;
+}
+
+.dashboard-nav ul {
+    list-style: none;
+}
+
+.dashboard-nav ul li {
+    margin-bottom: 0.5rem;
+}
+
+.nav-item {
+    display: flex;
+    align-items: center;
+    padding: 1rem;
+    text-decoration: none;
+    color: #666;
+    border-radius: 5px;
+    transition: all 0.3s;
+    font-size: 0.95rem;
+}
+
+.nav-item:hover {
+    background: #f5f5f5;
+    color: #1a1a1a;
+}
+
+.nav-item.active {
+    background: #1a1a1a;
+    color: #fff;
+}
+
+.nav-icon {
+    margin-right: 0.8rem;
+    font-size: 1.2rem;
+}
+
+/* Right Panel */
+.dashboard-right-panel {
+    background: #fff;
+    border-radius: 5px;
+    padding: 3rem;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+/* Dashboard content sections - scoped to dashboard only */
+.dashboard-right-panel .content-section {
+    display: none;
+}
+
+.dashboard-right-panel .content-section.active {
+    display: block;
+    animation: fadeIn 0.3s ease-in;
+}
+
+.dashboard-right-panel .content-section h2 {
+    font-size: 2rem;
+    margin-bottom: 2rem;
+    color: #1a1a1a;
+}
+
+/* Info Card */
+.info-card {
+    background: #f5f5f5;
+    padding: 2rem;
+    border-radius: 5px;
+    margin-bottom: 2rem;
+}
+
+.info-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 1rem 0;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.info-row:last-child {
+    border-bottom: none;
+}
+
+.info-row label {
+    font-weight: bold;
+    color: #666;
+}
+
+.info-row span {
+    color: #1a1a1a;
+}
+
+.status-badge {
+    display: inline-block;
+    padding: 0.3rem 0.8rem;
+    background: #4CAF50;
+    color: #fff;
+    border-radius: 3px;
+    font-size: 0.85rem;
+    font-weight: normal;
+}
+
+.status-badge.canceled {
+    background: #f44336;
+}
+
+.status-badge.completed {
+    background: #2196f3;
+}
+
+/* Action Buttons */
+.action-buttons {
+    display: flex;
+    gap: 1rem;
+}
+
+.action-buttons .btn-primary,
+.action-buttons .btn-secondary {
+    flex: 1;
+}
+
+/* Subscription Section */
+.subscription-status {
+    margin-bottom: 2rem;
+}
+
+.subscription-status h3 {
+    font-size: 1.3rem;
+    margin-bottom: 1rem;
+    color: #1a1a1a;
+}
+
+.no-subscription {
+    color: #666;
+    font-style: italic;
+}
+
+.active-subscription p {
+    margin-bottom: 0.8rem;
+    color: #333;
+}
+
+.available-plans {
+    margin-top: 3rem;
+}
+
+.available-plans h3 {
+    font-size: 1.3rem;
+    margin-bottom: 1.5rem;
+    color: #1a1a1a;
+}
+
+.plans-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+}
+
+.plan-card {
+    background: #fff;
+    border: 2px solid #e0e0e0;
+    border-radius: 5px;
+    padding: 2rem;
+    text-align: center;
+    transition: all 0.3s;
+}
+
+.plan-card:hover {
+    border-color: #1a1a1a;
+    transform: translateY(-5px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+}
+
+.plan-card h4 {
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+    color: #1a1a1a;
+}
+
+.plan-price {
+    font-size: 2rem;
+    font-weight: bold;
+    color: #1a1a1a;
+    margin-bottom: 0.5rem;
+}
+
+.plan-period {
+    color: #666;
+    margin-bottom: 1.5rem;
+}
+
+/* Appointments Section */
+.appointments-header {
+    margin-bottom: 2rem;
+}
+
+.appointments-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.appointment-card {
+    background: #f5f5f5;
+    padding: 1.5rem;
+    border-radius: 5px;
+    border-left: 4px solid #1a1a1a;
+}
+
+.appointment-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.appointment-header h4 {
+    font-size: 1.2rem;
+    color: #1a1a1a;
+}
+
+.appointment-card p {
+    margin-bottom: 0.5rem;
+    color: #333;
+}
+
+.no-data {
+    color: #666;
+    font-style: italic;
+    text-align: center;
+    padding: 2rem;
+}
+
 /* Responsive for Booking */
 @media (max-width: 968px) {
+    .dashboard-layout {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+
+    .dashboard-left-panel {
+        padding: 1.5rem;
+    }
+
+    .dashboard-right-panel {
+        padding: 2rem;
+    }
+
+    .action-buttons {
+        flex-direction: column;
+    }
+
+    .plans-grid {
+        grid-template-columns: 1fr;
+    }
+
     .booking-layout {
         grid-template-columns: 1fr;
         gap: 2rem;
